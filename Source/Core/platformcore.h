@@ -22,25 +22,9 @@
  * SOFTWARE.
  * 
  */
+#pragma once
 
-#include "typedefs.h"
-#include<iostream>
-
-#if defined _WIN64
-#include "CoreUI/Windows/winmainapp.h"
-#include "Core/Windows/wincore.h"
-using MainApp = WinMainApp;
-using MainCore = WinCore;
-#elif defined __linux__
-#include "CoreUI/Linux/linuxmainapp.h"
-using MainApp = LinuxMainApp;
-#endif
-
-int main(int argc,char** argv){
-    // MainApp* app = new MainApp();
-    // app->StartApp();
-
-    MainCore *app = new MainCore();
-    app->SpawnProcess(argc,argv);
-    return 0;
-}
+class PlatformCore{
+    public:
+        virtual int SpawnProcess(int argc,char** argv) = 0;
+};
