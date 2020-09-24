@@ -5,7 +5,7 @@ project(CoreUI)
 add_library(CoreUI target.cpp)
 
 if(WIN32)
-    include(PlatformWindow.cmake)
+    include(PlatformWin.cmake)
     target_link_libraries(CoreUI WinUI)
 endif(WIN32)
 
