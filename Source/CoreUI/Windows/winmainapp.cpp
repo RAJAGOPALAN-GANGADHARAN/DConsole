@@ -23,7 +23,6 @@
  * 
  */
 
-
 #include "winmainapp.h"
 #include <windows.h>
 #include <stdlib.h>
@@ -35,6 +34,7 @@ static TCHAR szTitle[] = _T("DConsole");
 
 HINSTANCE hInst;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
 
 int WinMainApp::WinMain(
     _In_ HINSTANCE hInstance,
@@ -87,7 +87,6 @@ int WinMainApp::WinMain(
 
         return 1;
     }
-    fprintf(stderr, "1:%s \n", __PRETTY_FUNCTION__);
     ShowWindow(platform_window,
                nCmdShow);
     UpdateWindow(platform_window);
@@ -95,12 +94,9 @@ int WinMainApp::WinMain(
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0))
     {
-        fprintf(stderr, "2:%s \n", __PRETTY_FUNCTION__);
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-    fprintf(stderr, "3:%s \n", __PRETTY_FUNCTION__);
-    return (int)msg.wParam;
 }
 
 
