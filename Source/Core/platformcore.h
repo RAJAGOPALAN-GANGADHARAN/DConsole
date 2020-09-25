@@ -25,6 +25,8 @@
 #pragma once
 
 class PlatformCore{
+    protected:
+        Platform_IPC sender,recieverStdout,recieverStderr;
     public:
         virtual int SpawnProcess(int argc,char** argv) = 0;
 };
