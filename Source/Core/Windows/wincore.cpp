@@ -36,32 +36,30 @@ int WinCore::SpawnProcess(int argc, char **argv)
 {
     SECURITY_ATTRIBUTES saAttr;
 
-    printf("\n->Start of parent execution.\n");
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
     saAttr.bInheritHandle = TRUE;
     saAttr.lpSecurityDescriptor = NULL;
 
-    if (!CreatePipe(&recieverStderr, &recieverStderrWrite, &saAttr, 0))
-        ErrorExit(TEXT("Stderr CreatePipe Failed"));
-
-    if (!SetHandleInformation(recieverStderr, HANDLE_FLAG_INHERIT, 0))
-        ErrorExit(TEXT("Stderr SetHandleInformation Failed"));
-
-    if (!CreatePipe(&recieverStdout, &recieverStdoutWrite, &saAttr, 0))
+    if (!CreatePipe(&senderStdout, &senderStdoutWrite, &saAttr, 0))
         ErrorExit(TEXT("Stdout CreatePipe Failed"));
 
-    if (!SetHandleInformation(recieverStdout, HANDLE_FLAG_INHERIT, 0))
+    if (!SetHandleInformation(senderStdout, HANDLE_FLAG_INHERIT, 0))
         ErrorExit(TEXT("Stdout SetHandleInformation Failed"));
 
-    // if (argc == 1)
-    //     ErrorExit(TEXT("Please specify a child process.\n"));
+    if (!CreatePipe(&senderStderr, &senderStderrWrite, &saAttr, 0))
+        ErrorExit(TEXT("Stderr CreatePipe Failed"));
 
-    CreateChildProcess("child");
+    if (!SetHandleInformation(senderStderr, HANDLE_FLAG_INHERIT, 0))
+        ErrorExit(TEXT("Stderr SetHandleInformation Failed"));
+
+
+    if (argc == 1)
+        ErrorExit(TEXT("Failed: wrong executable specified\n"));
+
+    CreateChildProcess(argv[1]);
 
     printf("\n->Contents of child process STDOUT:\n\n");
     ReadFromPipe();
-
-    printf("\n->End of parent execution.\n");
 
     return 0;
 }
@@ -79,8 +77,8 @@ void WinCore::CreateChildProcess(const char *process)
 
     ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
     siStartInfo.cb = sizeof(STARTUPINFO);
-    siStartInfo.hStdError = recieverStderr;
-    siStartInfo.hStdOutput = recieverStdout;
+    siStartInfo.hStdError = senderStderrWrite;
+    siStartInfo.hStdOutput = senderStdoutWrite;
     siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
     bSuccess = CreateProcess(NULL,
@@ -100,8 +98,8 @@ void WinCore::CreateChildProcess(const char *process)
     {
         CloseHandle(piProcInfo.hProcess);
         CloseHandle(piProcInfo.hThread);
-        CloseHandle(recieverStderrWrite);
-        CloseHandle(recieverStdoutWrite);
+        CloseHandle(senderStderrWrite);
+        CloseHandle(senderStdoutWrite);
     }
 }
 
@@ -114,7 +112,7 @@ void WinCore::ReadFromPipe()
 
     for (;;)
     {
-        bSuccess = ReadFile(recieverStdout, chBuf, BUFSIZE, &dwRead, NULL);
+        bSuccess = ReadFile(senderStdout, chBuf, BUFSIZE, &dwRead, NULL);
         if (!bSuccess || dwRead == 0)
             break;
 
