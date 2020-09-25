@@ -32,18 +32,7 @@
 #include <iostream>
 #define BUFSIZE 4096
 
-HANDLE g_hChildStd_IN_Rd = NULL;
-HANDLE g_hChildStd_IN_Wr = NULL;
-HANDLE g_hChildStd_OUT_Rd = NULL;
-HANDLE g_hChildStd_OUT_Wr = NULL;
-
-HANDLE g_hInputFile = NULL;
-
-void CreateChildProcess(const char* );
-void WriteToPipe(void);
-void ReadFromPipe(void);
-void ErrorExit(PTSTR);
-int WinCore::SpawnProcess(int argc, char** argv)
+int WinCore::SpawnProcess(int argc, char **argv)
 {
     SECURITY_ATTRIBUTES saAttr;
 
@@ -52,38 +41,22 @@ int WinCore::SpawnProcess(int argc, char** argv)
     saAttr.bInheritHandle = TRUE;
     saAttr.lpSecurityDescriptor = NULL;
 
+    if (!CreatePipe(&recieverStderr, &recieverStderrWrite, &saAttr, 0))
+        ErrorExit(TEXT("Stderr CreatePipe Failed"));
 
-    if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
-        ErrorExit(TEXT("StdoutRd CreatePipe"));
+    if (!SetHandleInformation(recieverStderr, HANDLE_FLAG_INHERIT, 0))
+        ErrorExit(TEXT("Stderr SetHandleInformation Failed"));
 
-    if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0))
-        ErrorExit(TEXT("Stdout SetHandleInformation"));
+    if (!CreatePipe(&recieverStdout, &recieverStdoutWrite, &saAttr, 0))
+        ErrorExit(TEXT("Stdout CreatePipe Failed"));
 
-    if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0))
-        ErrorExit(TEXT("Stdin CreatePipe"));
+    if (!SetHandleInformation(recieverStdout, HANDLE_FLAG_INHERIT, 0))
+        ErrorExit(TEXT("Stdout SetHandleInformation Failed"));
 
-    if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0))
-        ErrorExit(TEXT("Stdin SetHandleInformation"));
+    // if (argc == 1)
+    //     ErrorExit(TEXT("Please specify a child process.\n"));
 
     CreateChildProcess("child");
-
-    if (argc == 1)
-        ErrorExit(TEXT("Please specify an input file.\n"));
-
-    g_hInputFile = CreateFile(
-        (LPCSTR)argv[1],
-        GENERIC_READ,
-        0,
-        NULL,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_READONLY,
-        NULL);
-
-    if (g_hInputFile == INVALID_HANDLE_VALUE)
-        ErrorExit(TEXT("CreateFile"));
-
-    WriteToPipe();
-    printf("\n->Contents of %S written to child STDIN pipe.\n", argv[1]);
 
     printf("\n->Contents of child process STDOUT:\n\n");
     ReadFromPipe();
@@ -93,33 +66,22 @@ int WinCore::SpawnProcess(int argc, char** argv)
     return 0;
 }
 
-
-
-void CreateChildProcess(const char* process)
-// Create a child process that uses the previously created pipes for STDIN and STDOUT.
+void WinCore::CreateChildProcess(const char *process)
 {
     TCHAR szCmdline[101];
-    _tcscpy_s(szCmdline,_T(process));
-    //(const wchar_t *)process;
+    _tcscpy_s(szCmdline, _T(process));
+
     PROCESS_INFORMATION piProcInfo;
     STARTUPINFO siStartInfo;
     BOOL bSuccess = FALSE;
 
-    // Set up members of the PROCESS_INFORMATION structure.
-
     ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
-
-    // Set up members of the STARTUPINFO structure.
-    // This structure specifies the STDIN and STDOUT handles for redirection.
 
     ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
     siStartInfo.cb = sizeof(STARTUPINFO);
-    siStartInfo.hStdError = g_hChildStd_OUT_Wr;
-    siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
-    siStartInfo.hStdInput = g_hChildStd_IN_Rd;
+    siStartInfo.hStdError = recieverStderr;
+    siStartInfo.hStdOutput = recieverStdout;
     siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
-
-    // Create the child process.
 
     bSuccess = CreateProcess(NULL,
                              szCmdline,    // command line
@@ -132,57 +94,18 @@ void CreateChildProcess(const char* process)
                              &siStartInfo, // STARTUPINFO pointer
                              &piProcInfo); // receives PROCESS_INFORMATION
 
-    // If an error occurs, exit the application.
     if (!bSuccess)
         ErrorExit(TEXT("CreateProcess"));
     else
     {
-        // Close handles to the child process and its primary thread.
-        // Some applications might keep these handles to monitor the status
-        // of the child process, for example.
-
         CloseHandle(piProcInfo.hProcess);
         CloseHandle(piProcInfo.hThread);
-
-        // Close handles to the stdin and stdout pipes no longer needed by the child process.
-        // If they are not explicitly closed, there is no way to recognize that the child process has ended.
-
-        CloseHandle(g_hChildStd_OUT_Wr);
-        CloseHandle(g_hChildStd_IN_Rd);
+        CloseHandle(recieverStderrWrite);
+        CloseHandle(recieverStdoutWrite);
     }
 }
 
-void WriteToPipe(void)
-
-// Read from a file and write its contents to the pipe for the child's STDIN.
-// Stop when there is no more data.
-{
-    DWORD dwRead, dwWritten;
-    CHAR chBuf[BUFSIZE];
-    BOOL bSuccess = FALSE;
-
-    for (;;)
-    {
-        bSuccess = ReadFile(g_hInputFile, chBuf, BUFSIZE, &dwRead, NULL);
-        if (!bSuccess || dwRead == 0)
-            break;
-
-        bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
-        if (!bSuccess)
-            break;
-    }
-
-    // Close the pipe handle so the child process stops reading.
-
-    if (!CloseHandle(g_hChildStd_IN_Wr))
-        ErrorExit(TEXT("StdInWr CloseHandle"));
-}
-
-void ReadFromPipe(void)
-
-// Read output from the child process's pipe for STDOUT
-// and write to the parent process's pipe for STDOUT.
-// Stop when there is no more data.
+void WinCore::ReadFromPipe()
 {
     DWORD dwRead, dwWritten;
     CHAR chBuf[BUFSIZE];
@@ -191,7 +114,7 @@ void ReadFromPipe(void)
 
     for (;;)
     {
-        bSuccess = ReadFile(g_hChildStd_OUT_Rd, chBuf, BUFSIZE, &dwRead, NULL);
+        bSuccess = ReadFile(recieverStdout, chBuf, BUFSIZE, &dwRead, NULL);
         if (!bSuccess || dwRead == 0)
             break;
 
@@ -202,10 +125,7 @@ void ReadFromPipe(void)
     }
 }
 
-void ErrorExit(PTSTR lpszFunction)
-
-// Format a readable error message, display a message box,
-// and exit from the application.
+void WinCore::ErrorExit(PTSTR lpszFunction)
 {
     LPVOID lpMsgBuf;
     LPVOID lpDisplayBuf;

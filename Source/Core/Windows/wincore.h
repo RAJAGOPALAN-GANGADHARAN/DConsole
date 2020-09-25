@@ -26,8 +26,15 @@
 #include "../../typedefs.h"
 #include "../platformcore.h"
 
-class WinCore : public PlatformCore{
-    public:
-        int SpawnProcess(int argc,char** argv);
-        Platform_GUI platform_window;
+class WinCore : public PlatformCore
+{
+private:
+    HANDLE recieverStdoutWrite, recieverStderrWrite;
+
+public:
+    int SpawnProcess(int argc, char **argv);
+    void CreateChildProcess(const char *);
+    void ErrorExit(PTSTR);
+    void ReadFromPipe();
+    Platform_GUI platform_window;
 };
