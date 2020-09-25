@@ -28,10 +28,13 @@
 #if defined _WIN64
 #include <windows.h>
 using Platform_GUI = HWND;
+using Platform_PID = DWORD;
+using Platform_IPC = HANDLE;
 #elif defined _WIN32
 #include <windows.h>
 using Platform_GUI = HWND;
 #elif defined __APPLE__
 #elif defined __linux__
-using Platform_GUI = int;
+using Platform_PID = pid_t;
+
 #endif
