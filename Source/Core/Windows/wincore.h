@@ -29,7 +29,7 @@
 class WinCore : public PlatformCore
 {
 private:
-    HANDLE recieverStdoutWrite, recieverStderrWrite;
+    HANDLE senderStdoutWrite, senderStderrWrite;
 
 public:
     int SpawnProcess(int argc, char **argv);
