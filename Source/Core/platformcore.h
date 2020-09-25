@@ -26,7 +26,7 @@
 
 class PlatformCore{
     protected:
-        Platform_IPC sender,recieverStdout,recieverStderr;
+        Platform_IPC reciever,senderStdout,senderStderr;
     public:
         virtual int SpawnProcess(int argc,char** argv) = 0;
 };
