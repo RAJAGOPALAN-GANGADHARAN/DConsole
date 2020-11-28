@@ -19,3 +19,10 @@ mkdir build && cd build
 cmake .. -GNinja
 ninja -j <CPU_CORES>
 ```
+
+
+#### Communication Channel
+
+For all project related doubts and guidance please join this discord channel
+
+[Discord Link](https://discord.gg/rbpcqxuYzU)
