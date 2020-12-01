@@ -23,21 +23,17 @@
  * 
  */
 
+#include "linuxcore.h"
+#include <iostream>
+#include <gtk/gtk.h>
+int LinuxCore::SpawnProcess(int argc, char **argv)
+{
+    std::cout << "App start";
+    gtk_init(&argc, &argv);
+    GtkWidget *window;
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_widget_show_all(window);
 
-#pragma once
-#if defined _WIN64
-#include <windows.h>
-using Platform_GUI = HWND;
-using Platform_PID = DWORD;
-using Platform_IPC = HANDLE;
-#elif defined _WIN32
-#include <windows.h>
-using Platform_GUI = HWND;
-#elif defined __APPLE__
-#elif defined __linux__
-// #include <gtk/gtk.h>
-using Platform_PID = int;
-using Platform_IPC = int;
-// using Platform_GUI = GtkWidget *;
-using Platform_GUI = int;
-#endif
+    gtk_main();
+    return 0;
+}

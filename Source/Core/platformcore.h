@@ -23,6 +23,7 @@
  * 
  */
 #pragma once
+#include "../typedefs.h"
 
 class PlatformCore{
     protected:

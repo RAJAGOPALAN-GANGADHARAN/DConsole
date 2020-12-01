@@ -22,22 +22,12 @@
  * SOFTWARE.
  * 
  */
-
-
 #pragma once
-#if defined _WIN64
-#include <windows.h>
-using Platform_GUI = HWND;
-using Platform_PID = DWORD;
-using Platform_IPC = HANDLE;
-#elif defined _WIN32
-#include <windows.h>
-using Platform_GUI = HWND;
-#elif defined __APPLE__
-#elif defined __linux__
-// #include <gtk/gtk.h>
-using Platform_PID = int;
-using Platform_IPC = int;
-// using Platform_GUI = GtkWidget *;
-using Platform_GUI = int;
-#endif
+#include "../../typedefs.h"
+#include "../platformcore.h"
+
+class LinuxCore : public PlatformCore
+{
+public:
+    int SpawnProcess(int argc, char **argv);
+};

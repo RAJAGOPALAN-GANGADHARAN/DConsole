@@ -33,7 +33,9 @@ using MainApp = WinMainApp;
 using MainCore = WinCore;
 #elif defined __linux__
 #include "CoreUI/Linux/linuxmainapp.h"
+#include "Core/Linux/linuxcore.h"
 using MainApp = LinuxMainApp;
+using MainCore = LinuxCore;
 #endif
 
 int main(int argc,char** argv){
