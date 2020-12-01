@@ -9,3 +9,8 @@ if(WIN32)
     target_link_libraries(Core WinCore)
 endif(WIN32)
 
+if(UNIX)
+    include(PlatformLinux.cmake)
+    target_link_libraries(Core LinuxCore ${GTK2_LIBRARIES})
+endif(UNIX)
+
