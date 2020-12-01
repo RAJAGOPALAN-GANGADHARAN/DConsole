@@ -6,6 +6,14 @@ A really useful debugging tool for developers with easy to use GUI scheme.
 
 ## Instructions:
 
+#### Requirements
+
++ Linux
+
+```sh
+sudo apt-get install build-essentials libgtk2.0-dev
+```
+
 #### Using Cmake as Generator
 ```sh
 mkdir build && cd build
