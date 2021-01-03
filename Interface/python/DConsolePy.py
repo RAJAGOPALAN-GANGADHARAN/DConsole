@@ -30,10 +30,11 @@ def first_time_connect():
 
 
 def fill_str_buff(msg):
-    buf = '' * 128
+    buf = [''] * 128
     for i in range(len(msg)):
         buf[i] = msg[i]
-
+    buf[range(len(msg))] = '\0'
+    buf = ''.join(buf)
     return bytes(buf)
 
 def send_base(buffer):
