@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtGui>
 #include <QtWidgets>
 #include <QObject>
 #include "utils.h"

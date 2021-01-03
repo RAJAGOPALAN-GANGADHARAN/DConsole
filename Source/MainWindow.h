@@ -7,7 +7,7 @@
 struct Message;
 class MainTabWidget;
 
-class MainWindow : public QWidget
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
