@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <QtGui>
 #include <QtWidgets>
+#include <QTime>
 
 MainTabWidget::MainTabWidget(QWidget* parent)
 :QTabWidget(parent)
@@ -18,16 +19,21 @@ void MainTabWidget::CreateNewTab(QString tab_name,QString color,QString data)
 {
     if (tabIndex.find(tab_name) == tabIndex.end())
     {
-        qDebug() << tab_name;
-        QListWidget *listWidget = new QListWidget(this);
-        tabIndex[tab_name] = {addTab(listWidget, tab_name),1};
+        QTableWidget *table = new QTableWidget(0,2,this);
+        table->horizontalHeader()->hide();
+        table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        table->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
+        tabIndex[tab_name] = addTab(table, tab_name);
     }
 
-    QListWidgetItem *newItem = new QListWidgetItem;
-    newItem->setText(data);
-    newItem->setBackgroundColor(QString(color));
+    QLabel *timeStamp = new QLabel(QTime::currentTime().toString());
+    QLabel *lineEdit1 = new QLabel(data);
+    lineEdit1->setStyleSheet("QLabel { background-color: " + color + "; font-size: 15px; }");
+
     auto tabData = tabIndex[tab_name];
-    QListWidget *upWidget = (QListWidget *)this->widget(tabData.first);
-    upWidget->insertItem(tabData.second, newItem);
-    tabIndex[tab_name].second++;
+    QTableWidget *upWidget = (QTableWidget*)this->widget(tabData);
+    int row = upWidget->rowCount();
+    upWidget->insertRow(row);
+    upWidget->setCellWidget(row, 0, timeStamp);
+    upWidget->setCellWidget(row, 1, lineEdit1);
 }

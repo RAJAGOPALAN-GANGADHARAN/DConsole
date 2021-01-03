@@ -22,4 +22,6 @@ public:
     std::thread* reciever_thread;
 signals:
     void SignalCreateNewTab(QString, QString, QString);
+private:
+    void constructMenu();
 };

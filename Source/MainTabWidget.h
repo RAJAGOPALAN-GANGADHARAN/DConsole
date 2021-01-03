@@ -13,5 +13,5 @@ public:
 public slots:
     void CreateNewTab(QString,QString,QString);
 private:
-    std::map<QString, std::pair<int, int>> tabIndex;
+    std::map<QString, int> tabIndex;
 };

@@ -5,6 +5,10 @@
 int main(int argc, char **argv)
 {
     QApplication app(argc,argv);
+
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // DPI support
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps); // HiDPI pixmaps
+
     MainWindow* mw = new MainWindow();
     mw->show();
 
