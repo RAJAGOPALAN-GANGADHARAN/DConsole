@@ -52,7 +52,7 @@ You can refer to the following articles on the basics of Git and Github and also
 + Linux
 
 ```sh
-sudo apt-get install build-essentials libgtk2.0-dev
+sudo apt-get install build-essentials qt5-default
 ```
 
 #### Using Cmake as Generator
