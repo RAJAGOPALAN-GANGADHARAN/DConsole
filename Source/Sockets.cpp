@@ -108,6 +108,7 @@ void Socket::recieve_message_loop()
                     {
                         debug_helper("recieved a message:");
                         debug_helper(msg.data);
+                        debug_helper(msg.color);
                         debug_helper(msg.tab_name);
                         parent_window->UpdateMessage(msg);
                     }

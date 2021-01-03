@@ -20,6 +20,7 @@
 struct Message
 {
     char tab_name[16];
+    char color[16];
     char data[128];
 };
 
