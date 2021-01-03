@@ -1,7 +1,6 @@
 import socket
 import sys
 import os
-import traceback
 
 DCONSOLE_SERVER = "/tmp/dconsole-server.socket"
 
@@ -30,11 +29,18 @@ def first_time_connect():
     static_client_socket(client_socket)
 
 
-def send_base(msg):
+def fill_str_buff(msg):
+    buf = '' * 128
+    for i in range(len(msg)):
+        buf[i] = msg[i]
+
+    return bytes(buf)
+
+def send_base(buffer):
     con_c = 0
     while con_c < 25:
         try:
-            static_client_socket.tSock.sendall(bytes(123))
+            static_client_socket.tSock.sendall(buffer)
             break
         except Exception as e:
             first_time_connect()
@@ -46,4 +52,5 @@ def send_base(msg):
     debug_helper("Successfully sent")
 
 def DConsoleSend(console_msg):
-    send_base(console_msg)
+    byte_buffer = fill_str_buff(str(console_msg))
+    send_base(byte_buffer)
