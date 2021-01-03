@@ -58,17 +58,21 @@ sudo apt-get install build-essentials libgtk2.0-dev
 #### Using Cmake as Generator
 ```sh
 mkdir build && cd build
-cmake ..
+cmake .. -DCMAKE_CXX_FLAGS="-pthread"
 make
 ```
 
 #### Using Ninja as Generator
 ```sh
 mkdir build && cd build
-cmake .. -GNinja
+cmake .. -GNinja -DCMAKE_CXX_FLAGS="-pthread"
 ninja -j <CPU_CORES>
 ```
 
+#### Enable Debug prints
+```sh
+cmake .. -GNinja -DCMAKE_CXX_FLAGS="-DDEBUG -pthread"
+```
 
 #### Communication Channel
 
