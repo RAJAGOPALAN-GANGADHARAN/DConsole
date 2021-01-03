@@ -5,7 +5,9 @@
 #include <thread>
 
 struct Message;
-class MainWindow: public QWidget
+class MainTabWidget;
+
+class MainWindow : public QWidget
 {
     Q_OBJECT
 public:
@@ -15,7 +17,9 @@ public:
 
     void set_reciever_thread(std::thread*);
 
-    QListWidget *listWidget;
+    MainTabWidget *tabWidget;
     int widget_row;
     std::thread* reciever_thread;
+signals:
+    void SignalCreateNewTab(QString, QString, QString);
 };
