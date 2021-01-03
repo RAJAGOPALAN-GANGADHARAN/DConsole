@@ -19,7 +19,6 @@
 
 struct Message
 {
-    int32_t data_len;
     char data[128];
 };
 
