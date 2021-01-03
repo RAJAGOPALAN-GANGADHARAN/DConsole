@@ -19,7 +19,6 @@
 
 struct Message
 {
-    int32_t data_len;
     char data[64];
 };
 
@@ -80,9 +79,7 @@ void send_base(Message msg)
 
 void DConsoleSend(std::string console_msg)
 {
-    Message m{
-        console_msg.size()
-    };
+    Message m;
     string_copy(m, console_msg);
     send_base(m);
 }
@@ -90,9 +87,7 @@ void DConsoleSend(std::string console_msg)
 void DConsoleSend(int console_msg)
 {
     auto et = std::to_string(console_msg);
-    Message m{
-        et.size()
-    };
+    Message m;
     string_copy(m, et);
     send_base(m);
 }
