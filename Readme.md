@@ -1,4 +1,4 @@
-﻿<p align="center">
+﻿﻿<p align="center">
   <a href="#"><img src="https://capsule-render.vercel.app/api?type=rect&color=009ACD&height=100&section=header&text=DConsole&fontSize=60%&fontColor=ffffff" alt="website title image"></a>
   <h2 align="center">👉 Dconsole a Debugging Tool👈</h2>
 </p>
@@ -81,9 +81,14 @@ For all project related doubts and guidance please join this discord channel
 
 As of now simple socket message passing with Bare minimum UI works.
 
-[ ] Multi language interface
-[ ] Tabbed structure
-[ ] More complex message structure
-[ ] UI(High DPI, Widgets .. etc)
-[ ] Tests
-[ ] Color coded message
+- [ ] Multi language interface
+
+- [ ] Tabbed structure
+
+- [ ] More complex message structure
+
+- [ ] UI(High DPI, Widgets .. etc)
+
+- [ ] Tests
+
+- [ ] Color coded message
