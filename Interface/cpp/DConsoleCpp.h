@@ -20,6 +20,7 @@
 struct Message
 {
     char tab_name[16];
+    char color[16];
     char data[128];
 };
 
@@ -78,19 +79,23 @@ void send_base(Message msg)
     }
 }
 
-void DConsoleSend(std::string console_msg,std::string tab_name="default")
+void DConsoleSend(std::string console_msg,std::string color="white",
+    std::string tab_name="default")
 {
     Message m;
     string_copy(m.data, console_msg,128);
     string_copy(m.tab_name, tab_name,16);
+    string_copy(m.color, color, 16);
     send_base(m);
 }
 
-void DConsoleSend(int console_msg, std::string tab_name = "default")
+void DConsoleSend(int console_msg, std::string color = "white",
+    std::string tab_name = "default")
 {
     auto et = std::to_string(console_msg);
     Message m;
     string_copy(m.data, et, 128);
     string_copy(m.tab_name, tab_name, 16);
+    string_copy(m.color, color, 16);
     send_base(m);
 }

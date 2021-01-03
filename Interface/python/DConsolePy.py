@@ -35,10 +35,11 @@ def fill_str_buff(msg, size):
         buf[i] = msg[i]
     return ''.join(buf)
 
-def get_buff(msg, tab):
+def get_buff(msg, tab, color):
     tab = fill_str_buff(tab,16)
-    msg = fill_str_buff(msg,128)
-    return bytes(tab + msg, encoding='utf-8')
+    msg = fill_str_buff(msg, 128)
+    color = fill_str_buff(color, 16)
+    return bytes(color + tab + msg, encoding='utf-8')
 
 def send_base(buffer):
     con_c = 0
@@ -55,6 +56,6 @@ def send_base(buffer):
 
     debug_helper("Successfully sent")
 
-def DConsoleSend(console_msg,tab_name='default'):
-    byte_buffer = get_buff(str(console_msg),tab_name)
+def DConsoleSend(console_msg,color='white',tab_name='default'):
+    byte_buffer = get_buff(str(console_msg), color, tab_name)
     send_base(byte_buffer)
