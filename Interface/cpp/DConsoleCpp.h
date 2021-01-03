@@ -19,7 +19,8 @@
 
 struct Message
 {
-    char data[64];
+    char tab_name[16];
+    char data[128];
 };
 
 void error_helper(std::string message, int code)
@@ -55,14 +56,14 @@ int first_time_connect()
 
 static int client_fd = -1;
 
-void string_copy(Message& msg,std::string s)
+void string_copy(char* field,std::string s,int size)
 {
+    memset(field, '\0', sizeof(field));
     int i = 0;
-    for (i = 0; i < std::min((int)s.size(), 63); ++i)
+    for (i = 0; i < std::min((int)s.size(), size); ++i)
     {
-        msg.data[i] = s[i];
+        field[i] = s[i];
     }
-    msg.data[i] = '\0';
 }
 
 void send_base(Message msg)
@@ -77,17 +78,19 @@ void send_base(Message msg)
     }
 }
 
-void DConsoleSend(std::string console_msg)
+void DConsoleSend(std::string console_msg,std::string tab_name="default")
 {
     Message m;
-    string_copy(m, console_msg);
+    string_copy(m.data, console_msg,128);
+    string_copy(m.tab_name, tab_name,16);
     send_base(m);
 }
 
-void DConsoleSend(int console_msg)
+void DConsoleSend(int console_msg, std::string tab_name = "default")
 {
     auto et = std::to_string(console_msg);
     Message m;
-    string_copy(m, et);
+    string_copy(m.data, et, 128);
+    string_copy(m.tab_name, tab_name, 16);
     send_base(m);
 }

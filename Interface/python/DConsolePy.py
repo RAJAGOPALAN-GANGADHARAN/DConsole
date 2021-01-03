@@ -29,13 +29,16 @@ def first_time_connect():
     static_client_socket(client_socket)
 
 
-def fill_str_buff(msg):
-    buf = [''] * 128
+def fill_str_buff(msg, size):
+    buf = ['\0'] * size
     for i in range(len(msg)):
         buf[i] = msg[i]
-    buf[range(len(msg))] = '\0'
-    buf = ''.join(buf)
-    return bytes(buf)
+    return ''.join(buf)
+
+def get_buff(msg, tab):
+    tab = fill_str_buff(tab,16)
+    msg = fill_str_buff(msg,128)
+    return bytes(tab + msg, encoding='utf-8')
 
 def send_base(buffer):
     con_c = 0
@@ -52,6 +55,6 @@ def send_base(buffer):
 
     debug_helper("Successfully sent")
 
-def DConsoleSend(console_msg):
-    byte_buffer = fill_str_buff(str(console_msg))
+def DConsoleSend(console_msg,tab_name='default'):
+    byte_buffer = get_buff(str(console_msg),tab_name)
     send_base(byte_buffer)
