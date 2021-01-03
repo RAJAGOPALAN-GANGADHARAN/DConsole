@@ -14,12 +14,14 @@ find_package(Qt5 COMPONENTS Network REQUIRED)
 
 set(SOURCES 
     Source/main.cpp 
-    Source/MainWindow.cpp 
+    Source/MainWindow.cpp
+    Source/MainTabWidget.cpp
     Source/Sockets.cpp
     Source/utils.cpp
 ) 
 set(HEADERS 
-    Source/MainWindow.h 
+    Source/MainWindow.h
+    Source/MainTabWidget.h 
     Source/Sockets.h
     Source/utils.h
 )
