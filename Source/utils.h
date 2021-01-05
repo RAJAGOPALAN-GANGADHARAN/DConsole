@@ -1,7 +1,10 @@
 #pragma once
 #include <string>
 
+#if defined __linux__
 #define DCONSOLE_SERVER "/tmp/dconsole-server.socket"
+#endif 
+
 #define MAX_MESSAGE_SIZE 256
 
 #define FAIL_CODE 1

@@ -12,18 +12,40 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5 COMPONENTS Network REQUIRED)
 
+if(UNIX)
+    set(PLATFORM_HEADERS
+        Source/unix/Socket.h
+    )
+    set(PLATFORM_SOURCES
+        Source/unix/Socket.cpp
+    )
+endif(UNIX)
+
+if(WIN32)
+set(PLATFORM_HEADERS
+        Source/win/WPipe.h
+    )
+    set(PLATFORM_SOURCES
+        Source/win/WPipe.cpp
+    )
+endif(WIN32)
+
+
 set(SOURCES 
     Source/main.cpp 
     Source/MainWindow.cpp
     Source/MainTabWidget.cpp
-    Source/Sockets.cpp
+    Source/IPC.cpp
     Source/utils.cpp
-) 
+    ${PLATFORM_SOURCES}
+)
+
 set(HEADERS 
     Source/MainWindow.h
     Source/MainTabWidget.h 
-    Source/Sockets.h
+    Source/IPC.h
     Source/utils.h
+    ${PLATFORM_HEADERS}
 )
 
 # This will create you executable
