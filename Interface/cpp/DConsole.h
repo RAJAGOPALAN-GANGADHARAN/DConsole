@@ -151,7 +151,7 @@ void send_base(Message msg)
 #endif
 }
 
-void DConsoleSend(std::string console_msg,std::string color="white",
+void DConsole(std::string console_msg,std::string color="white",
     std::string tab_name="default")
 {
     Message m;
@@ -161,7 +161,7 @@ void DConsoleSend(std::string console_msg,std::string color="white",
     send_base(m);
 }
 
-void DConsoleSend(int console_msg, std::string color = "white",
+void DConsole(int console_msg, std::string color = "white",
     std::string tab_name = "default")
 {
     auto et = std::to_string(console_msg);
@@ -170,4 +170,9 @@ void DConsoleSend(int console_msg, std::string color = "white",
     string_copy(m.tab_name, tab_name, 16);
     string_copy(m.color, color, 16);
     send_base(m);
+}
+
+void DConsole(char* console_msg,char* color,char* tab_name)
+{
+    DConsole(std::string(console_msg), std::string(color), std::string(tab_name));
 }

@@ -8,6 +8,6 @@ elif platform.startswith('win'):
     import DConsolePyWin as DConsoleIn
 
 
-def DConsoleSend(console_msg, color='white', tab_name='default'):
+def DConsole(console_msg, color='white', tab_name='default'):
     byte_buffer = get_buff(str(console_msg), color, tab_name)
     DConsoleIn.send_base(byte_buffer)
