@@ -44,6 +44,7 @@ set(HEADERS
     Source/MainWindow.h
     Source/MainTabWidget.h 
     Source/IPC.h
+    Source/VIPC.h
     Source/utils.h
     ${PLATFORM_HEADERS}
 )

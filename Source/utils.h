@@ -20,6 +20,7 @@
     }
 #endif
 
+
 struct Message
 {
     char tab_name[16];
@@ -28,3 +29,4 @@ struct Message
 };
 
 void exit_helper(std::string message, int code);
+std::string random_string(std::size_t);

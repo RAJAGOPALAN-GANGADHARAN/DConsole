@@ -22,6 +22,7 @@ Socket::Socket()
 
 Socket::~Socket()
 {
+    fprintf(stderr, "Close socket?");
     close(server_fd);
 }
 
@@ -66,8 +67,7 @@ void Socket::create_server()
 
 void Socket::recieve_message_loop()
 {
-    bool state = true;
-    while (state)
+    while (appState)
     {
         read_fds = fds;
 

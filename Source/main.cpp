@@ -1,33 +1,21 @@
 #include <QApplication>
 #include "MainWindow.h"
-#include "IPC.h"
-
-#if defined _WIN64
-#include "Source/win/WPipe.h"
-using VIPC = WPipe;
-#elif defined __linux__
-#include "Source/unix/Socket.h"
-using VIPC = Socket;
-#endif
+#include "VIPC.h"
 
 int main(int argc, char **argv)
 {
-    QApplication app(argc,argv);
-
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // DPI support
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps); // HiDPI pixmaps
+
+    QApplication *app = new QApplication(argc, argv);
 
     MainWindow* mw = new MainWindow();
     mw->show();
 
-    VIPC* ipc_dameon = new VIPC();
-    ipc_dameon->register_window(mw);
-    ipc_dameon->create_server();
+    VIPC* ipc_daemon = new VIPC();
+    ipc_daemon->register_window(mw);
+    ipc_daemon->create_server();
+    ipc_daemon->spawn_message_loop();
 
-    auto message_thread = ipc_dameon->spawn_message_loop();
-    
-    // [WIP]Thread termination
-    //mw.set_reciever_thread(&message_thread);
-
-    return app.exec();
+    return app->exec();
 }

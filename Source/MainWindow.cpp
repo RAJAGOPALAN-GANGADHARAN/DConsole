@@ -4,6 +4,8 @@
 #include <thread>
 #include <QtWidgets>
 #include <map>
+#include <QCloseEvent>
+
 
 MainWindow::MainWindow(QWidget* parent)
 {
@@ -20,7 +22,7 @@ MainWindow::MainWindow(QWidget* parent)
 }
 
 void MainWindow::constructMenu()
-{
+{ 
     menuBar()->addMenu("Menu");
 }
 
@@ -28,13 +30,18 @@ void MainWindow::UpdateMessage(Message msg)
 {
     SignalCreateNewTab(msg.tab_name, msg.color, msg.data);
 }
-void MainWindow::set_reciever_thread(std::thread* thread)
+
+void MainWindow::closeIPC()
 {
-    this->reciever_thread = thread;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    closeIPC();
+    event->accept();
 }
 
 MainWindow::~MainWindow()
 {
-    reciever_thread->join();
     delete tabWidget;
 }

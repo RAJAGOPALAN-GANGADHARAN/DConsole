@@ -6,6 +6,7 @@
 
 struct Message;
 class MainTabWidget;
+class QCloseEvent;
 
 class MainWindow : public QMainWindow
 {
@@ -14,14 +15,12 @@ public:
     explicit MainWindow(QWidget *parent=0);
     ~MainWindow();
     void UpdateMessage(Message);
-
-    void set_reciever_thread(std::thread*);
-
-    MainTabWidget *tabWidget;
-    int widget_row;
-    std::thread* reciever_thread;
+    void closeEvent(QCloseEvent *) override;
+    void closeIPC();
 signals:
     void SignalCreateNewTab(QString, QString, QString);
 private:
     void constructMenu();
+    MainTabWidget *tabWidget;
+    QObject *workerObject;
 };

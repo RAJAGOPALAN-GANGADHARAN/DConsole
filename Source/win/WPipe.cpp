@@ -102,8 +102,8 @@ DWORD WINAPI InstanceThread(LPVOID tif)
 
 void WPipe::recieve_message_loop()
 {
-    for (;;) 
-   { 
+    while(appState)
+    { 
       _tprintf( TEXT("\nPipe Server: Main thread awaiting client connection on %s\n"), DCONSOLE_SERVER);
       hPipe = CreateNamedPipe( 
           DCONSOLE_SERVER,             // pipe name 
@@ -117,43 +117,43 @@ void WPipe::recieve_message_loop()
           0,                        // client time-out 
           NULL);                    // default security attribute 
 
-      if (hPipe == INVALID_HANDLE_VALUE) 
-      {
-          _tprintf(TEXT("CreateNamedPipe failed, GLE=%d.\n"), GetLastError()); 
-          exit_helper("NamedPipe creation Error",-1);
-      }
+        if (hPipe == INVALID_HANDLE_VALUE) 
+        {
+            _tprintf(TEXT("CreateNamedPipe failed, GLE=%d.\n"), GetLastError()); 
+            exit_helper("NamedPipe creation Error",-1);
+        }
  
       // Wait for the client to connect; if it succeeds, 
       // the function returns a nonzero value. If the function
       // returns zero, GetLastError returns ERROR_PIPE_CONNECTED. 
  
-      fConnected = ConnectNamedPipe(hPipe, NULL) ? 
-         TRUE : (GetLastError() == ERROR_PIPE_CONNECTED); 
- 
-      if (fConnected) 
-      { 
-         printf("Client connected, creating a processing thread.\n"); 
-         ThreadInterface* tif = new ThreadInterface();
-         tif->lp = (LPVOID) hPipe;
-         tif->windowLoc = parent_window;
-         // Create a thread for this client. 
-         hThread = CreateThread( 
-            NULL,              // no security attribute 
-            0,                 // default stack size 
-            InstanceThread,    // thread proc
-            tif,    // thread parameter 
-            0,                 // not suspended 
-            &dwThreadId);      // returns thread ID 
+        fConnected = ConnectNamedPipe(hPipe, NULL) ? 
+            TRUE : (GetLastError() == ERROR_PIPE_CONNECTED); 
+    
+        if (fConnected) 
+        { 
+            printf("Client connected, creating a processing thread.\n"); 
+            ThreadInterface* tif = new ThreadInterface();
+            tif->lp = (LPVOID) hPipe;
+            tif->windowLoc = parent_window;
+            // Create a thread for this client. 
+            hThread = CreateThread( 
+                NULL,              // no security attribute 
+                0,                 // default stack size 
+                InstanceThread,    // thread proc
+                tif,    // thread parameter 
+                0,                 // not suspended 
+                &dwThreadId);      // returns thread ID 
 
-         if (hThread == NULL) 
-         {
-            _tprintf(TEXT("CreateThread failed, GLE=%d.\n"), GetLastError()); 
-            exit_helper("NamedPipe creation Error",-1);
-         }
-         else CloseHandle(hThread); 
-       } 
-      else 
-        // The client could not connect, so close the pipe. 
-         CloseHandle(hPipe); 
+            if (hThread == NULL) 
+            {
+                _tprintf(TEXT("CreateThread failed, GLE=%d.\n"), GetLastError()); 
+                exit_helper("NamedPipe creation Error",-1);
+            }
+            else CloseHandle(hThread); 
+        } 
+        else 
+            // The client could not connect, so close the pipe. 
+            CloseHandle(hPipe); 
    } 
 }
