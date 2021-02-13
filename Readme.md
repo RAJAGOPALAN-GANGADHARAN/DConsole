@@ -23,6 +23,10 @@
 A Cross platform tool to get multiple logs in one place with easily visualizable colors.
 A really useful debugging tool for developers with easy to use GUI scheme.
 
+## 🧡 Loving the idea ?
+
+Follow me and give a star 🌟 for more updates.
+
 ## ⭐ How to get started?
 
 You can refer to the following articles on the basics of Git and Github and also contact the Project Mentors, in case you are stuck:
