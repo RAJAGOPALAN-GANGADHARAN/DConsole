@@ -1,2 +1,6 @@
 build*/**
 .vscode/*
+
+*.DS_Store
+Source/controller/build*/**
+*.exe

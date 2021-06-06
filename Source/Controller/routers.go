@@ -98,8 +98,13 @@ dirty:
 func createRouter() *mux.Router {
 	router := mux.NewRouter()
 
+	router.Handle("/", http.FileServer(http.Dir("./build")))
+	serveStatic(router, "/static", "/build")
+	//router.PathPrefix("/static/css/").Handler(http.StripPrefix("/static/css/", http.FileServer(http.Dir("./build/static/css/"))))
+
 	router.HandleFunc("/api/logs/{id}", getLogsForId).Methods("GET")
 	router.HandleFunc("/api/logs/{id}", dumpLogsForId).Methods("POST")
 	router.HandleFunc("/api/stream/{id}", readFromChannel).Methods("GET")
+
 	return router
 }
