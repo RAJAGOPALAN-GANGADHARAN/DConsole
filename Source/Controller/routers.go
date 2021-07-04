@@ -1,98 +1,66 @@
 package main
 
 import (
-	"encoding/json"
+	"DConsole/pkg/websocket"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func addToChannel(messageDump []Message, id string) {
-	_, present := channels[id]
-	if !present {
-		fmt.Println("Creating a new channel for id:" + id)
-		channels[id] = make(chan Message, 10)
+var trackCnt int = 0
+
+func masterSocketConnections(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
+	fmt.Println("New incoming master Socket Connection")
+	conn, err := websocket.Upgrade(w, r)
+	if err != nil {
+		fmt.Fprintf(w, "%+v\n", err)
 	}
 
-	for _, message := range messageDump {
-		channels[id] <- message
+	trackCnt += 1
+	client := &websocket.Client{
+		ID:   "master_socket_" + fmt.Sprint(trackCnt),
+		Conn: conn,
+		Pool: pool,
 	}
-	fmt.Println("Dump Routine success")
+
+	fmt.Println("Assigned ID:" + client.ID)
+	pool.Register <- client
 }
 
-func addToStash(messageDump []Message, id string) {
-	_, present := memoryStash[id]
-	if !present {
-		fmt.Println("Creating a new channel for id:" + id)
-		memoryStash[id] = make([]Message, 0)
+func handleProcessConnection(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
+	fmt.Println("New incoming process Connection")
+	conn, err := websocket.Upgrade(w, r)
+	if err != nil {
+		fmt.Fprintf(w, "%+v\n", err)
 	}
 
-	memoryStash[id] = append(memoryStash[id], messageDump...)
-	fmt.Println("Data dump to stash success")
+	trackCnt += 1
+	client := &websocket.Client{
+		ID:   "process_socket_" + fmt.Sprint(trackCnt),
+		Conn: conn,
+		Pool: pool,
+	}
+
+	fmt.Println("Assigned ID:" + client.ID)
+	pool.Register <- client
+
+	client.ListenProcess()
 }
 
-func getLogsForId(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	//Check if id exist
-	memory, present := memoryStash[params["id"]]
-	if !present {
-		json.NewEncoder(w).Encode(make([]Message, 0))
-		return
-	}
+func setupRoutes(router *mux.Router) {
+	clientPool := websocket.NewPool()
+	go clientPool.HandleClient()
 
-	fmt.Println("Get ID:" + params["id"])
-	json.NewEncoder(w).Encode(memory)
-}
+	processPool := websocket.NewPool()
+	go processPool.HandleProcess()
 
-func dumpLogsForId(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	fmt.Println("Post ID:" + params["id"])
-
-	var messageDump []Message
-	json.NewDecoder(r.Body).Decode(&messageDump)
-	fmt.Println(messageDump)
-
-	go addToChannel(messageDump, params["id"])
-	//  Directly add to map  //
-	addToStash(messageDump, params["id"])
-	//    //
-	json.NewEncoder(w).Encode("Dumped successfully for id:" + params["id"])
-}
-
-func readFromChannel(w http.ResponseWriter, r *http.Request) {
-
-	// w.Header().Set("Content-Type", "text/event-stream")
-	// w.Header().Set("Connection", "keep-alive")
-	// w.Header().Set("Cache-Control", "no-cache")
-	// w.WriteHeader(200)
-
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-
-	dataChannel, present := channels[id]
-	msgArr := make([]Message, 0)
-	if !present {
-		json.NewEncoder(w).Encode(msgArr)
-		return
-	}
-
-	for {
-		select {
-		case msg, ok := <-dataChannel:
-			if ok {
-				msgArr = append(msgArr, msg)
-			} else {
-				goto dirty
-			}
-		default:
-			goto dirty
-		}
-	}
-dirty:
-	json.NewEncoder(w).Encode(msgArr)
+	router.HandleFunc("/masterSocketConnection", func(w http.ResponseWriter, r *http.Request) {
+		masterSocketConnections(clientPool, w, r)
+	})
+	router.HandleFunc("/processConnection", func(rw http.ResponseWriter, r *http.Request) {
+		handleProcessConnection(processPool, rw, r)
+	})
 }
 
 func createRouter() *mux.Router {
@@ -100,11 +68,7 @@ func createRouter() *mux.Router {
 
 	router.Handle("/", http.FileServer(http.Dir("./build")))
 	serveStatic(router, "/static", "/build")
-	//router.PathPrefix("/static/css/").Handler(http.StripPrefix("/static/css/", http.FileServer(http.Dir("./build/static/css/"))))
-
-	router.HandleFunc("/api/logs/{id}", getLogsForId).Methods("GET")
-	router.HandleFunc("/api/logs/{id}", dumpLogsForId).Methods("POST")
-	router.HandleFunc("/api/stream/{id}", readFromChannel).Methods("GET")
+	setupRoutes(router)
 
 	return router
 }

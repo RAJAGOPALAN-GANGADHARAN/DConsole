@@ -11,8 +11,6 @@ import (
 
 func main() {
 	fmt.Println("Starting a webserver")
-	channels = make(map[string]chan Message)
-	memoryStash = make(map[string][]Message)
 
 	router := createRouter()
 	handler := cors.Default().Handler(router)
