@@ -32,11 +32,10 @@ async def hello():
         #     print(message)
         while True:
             await websocket.send(json.dumps({
-                "tab":"default"+str(random.randint(1,5)),
+                "tab":"overload",
                 "body":"Hello-"+str(datetime.now())
                 }))
-            print("Hi")
-            await asyncio.sleep(3)
+
             #time.sleep(2)
             # await websocket.send("Hello world!")
             # async for message in websocket:
