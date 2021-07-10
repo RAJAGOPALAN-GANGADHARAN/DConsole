@@ -5,10 +5,8 @@
 
 
 <p align="center">
-<img src="https://img.shields.io/badge/language-Linux-blue?style=for-the-badge">
-<img src="https://img.shields.io/badge/language-C++-blue?style=for-the-badge">
-<img src="https://img.shields.io/badge/language-CMake-blue?style=for-the-badge">
-<img src="https://img.shields.io/badge/language-C-blue?style=for-the-badge">  
+<img src="https://img.shields.io/badge/language-Go-blue?style=for-the-badge">
+<img src="https://img.shields.io/badge/tech-Websockets-blue?style=for-the-badge">
  </p>
  
  <p align="center">
