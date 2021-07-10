@@ -3,24 +3,30 @@ import { Tabs, Tab, Button } from "react-bootstrap";
 import { TabView } from "./TabView";
 
 export function Home() {
-	var masterSocket = new WebSocket(
-		"ws://localhost:8080/masterSocketConnection"
-	);
+	
 
-	let [tabViews, tabViewsUpdate] = useState([
-		<Tab eventKey="default" title="default">
-			<TabView tabName={"default"} />
-		</Tab>
-	]);
+	let [tabViews, tabViewsUpdate] = useState([]);
 	
 	useEffect(() => {
+		var masterSocket = new WebSocket(
+			"ws://localhost:8080/masterSocketConnection"
+		);
 		masterSocket.onopen = () => {
 			console.log("Successfully Connected");
 		};
 
 		masterSocket.onmessage = (msg) => {
-			console.log("Master Socket:");
 			console.log(msg.data)
+			let res = JSON.parse(msg.data)
+			console.log(res)
+			if (res.type == 100)
+			{
+				tabViewsUpdate(state => [...state,
+					<Tab eventKey={res.body} title={res.body}>
+						<TabView tabName={res.body} />
+					</Tab>])
+			}
+
 			
 		};
 

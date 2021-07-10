@@ -28,7 +28,7 @@ func masterSocketConnections(pool *websocket.Pool, w http.ResponseWriter, r *htt
 	pool.Register <- client
 }
 
-func handleProcessConnection(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
+func handleProcessConnection(masterQueue *websocket.ProcessMessageMaster, pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New incoming process Connection")
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
@@ -45,10 +45,10 @@ func handleProcessConnection(pool *websocket.Pool, w http.ResponseWriter, r *htt
 	fmt.Println("Assigned ID:" + client.ID)
 	//pool.Register <- client
 
-	client.ListenProcess()
+	client.ListenProcess(masterQueue)
 }
 
-func tabSocketConnection(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
+func tabSocketConnection(masterQueue *websocket.ProcessMessageMaster, pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	fmt.Println("New Tab socket Connection:" + vars["tabName"])
@@ -59,32 +59,37 @@ func tabSocketConnection(pool *websocket.Pool, w http.ResponseWriter, r *http.Re
 
 	trackCnt += 1
 	client := &websocket.Client{
-		ID:   "tab_socket_" + fmt.Sprint(trackCnt),
-		Conn: conn,
-		Pool: pool,
+		ID:      "tab_socket_" + fmt.Sprint(trackCnt),
+		Conn:    conn,
+		Pool:    pool,
+		TabName: vars["tabName"],
 	}
 
 	fmt.Println("Assigned ID:" + client.ID)
-	//pool.Register <- client
-
+	masterQueue.Notify <- client
+	fmt.Println("Notified queue")
 	client.TabChannel(vars["tabName"])
 }
 
 func setupRoutes(router *mux.Router) {
+
 	clientPool := websocket.NewPool()
 	go clientPool.HandleClient()
 
 	processPool := websocket.NewPool()
 	go processPool.HandleProcess()
 
+	messageQueueMaster := websocket.NewProcessMessageMaster()
+	go messageQueueMaster.MainLoop(clientPool)
+
 	router.HandleFunc("/masterSocketConnection", func(w http.ResponseWriter, r *http.Request) {
 		masterSocketConnections(clientPool, w, r)
 	})
 	router.HandleFunc("/tabSocketConnection/{tabName}", func(rw http.ResponseWriter, r *http.Request) {
-		tabSocketConnection(clientPool, rw, r)
+		tabSocketConnection(messageQueueMaster, clientPool, rw, r)
 	})
 	router.HandleFunc("/processConnection", func(rw http.ResponseWriter, r *http.Request) {
-		handleProcessConnection(processPool, rw, r)
+		handleProcessConnection(messageQueueMaster, processPool, rw, r)
 	})
 
 }

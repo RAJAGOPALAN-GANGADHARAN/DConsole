@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -84,7 +85,9 @@ func (pool *Pool) HandleProcess() {
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
 			for client, _ := range pool.Clients {
+				client.mu.Lock()
 				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
+				client.mu.Unlock()
 			}
 			break
 		case message := <-pool.Stream:
@@ -95,6 +98,92 @@ func (pool *Pool) HandleProcess() {
 			fmt.Println("Writing message:" + message.Body)
 			file.WriteString(message.Body + "\n")
 			file.Close()
+			break
+		}
+	}
+}
+
+type ProcessMessageQ struct {
+	connectedClients map[*Client]bool
+	FileName         string
+	Register         chan *Client
+	Unregister       chan *Client
+	Broadcast        chan *Message
+}
+
+func NewProcessMessageQ(fileName string) *ProcessMessageQ {
+	return &ProcessMessageQ{
+		connectedClients: make(map[*Client]bool),
+		FileName:         fileName,
+		Register:         make(chan *Client),
+		Unregister:       make(chan *Client),
+		Broadcast:        make(chan *Message),
+	}
+}
+
+func (queue *ProcessMessageQ) MainLoop() {
+	for {
+		select {
+		case client := <-queue.Register:
+			queue.connectedClients[client] = true
+			break
+		case client := <-queue.Unregister:
+			delete(queue.connectedClients, client)
+			break
+		case message := <-queue.Broadcast:
+			for client, _ := range queue.connectedClients {
+				client.mu.Lock()
+				client.Conn.WriteJSON(message)
+				client.mu.Unlock()
+			}
+
+			file, _ := os.OpenFile(queue.FileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+			fmt.Println("Writing message:" + message.Body)
+			messageJson, _ := json.Marshal(message)
+			file.Write(messageJson)
+			file.WriteString("\n")
+			file.Close()
+			break
+		}
+	}
+}
+
+type ProcessMessageMaster struct {
+	messageQueues map[string]*ProcessMessageQ
+	Register      chan Message
+	Unregister    chan string
+	Notify        chan *Client
+}
+
+func NewProcessMessageMaster() *ProcessMessageMaster {
+	return &ProcessMessageMaster{
+		messageQueues: make(map[string]*ProcessMessageQ),
+		Register:      make(chan Message),
+		Unregister:    make(chan string),
+		Notify:        make(chan *Client),
+	}
+}
+
+func (master *ProcessMessageMaster) MainLoop(pool *Pool) {
+	for {
+		select {
+		case message := <-master.Register:
+			if _, ok := master.messageQueues[message.Tab]; !ok {
+				master.messageQueues[message.Tab] = NewProcessMessageQ(message.Tab + "_logBase.log")
+				go master.messageQueues[message.Tab].MainLoop()
+				tabMessage := &Message{
+					Type: 100, //100 is a tab spawn message
+					Body: message.Tab,
+				}
+				pool.Broadcast <- *tabMessage
+				//do something here
+			}
+			fmt.Printf("Broadcast Message %+v", message)
+			master.messageQueues[message.Tab].Broadcast <- &message
+			break
+		case client := <-master.Notify:
+			fmt.Println("Registering a new client for tab" + client.TabName)
+			master.messageQueues[client.TabName].Register <- client
 			break
 		}
 	}
