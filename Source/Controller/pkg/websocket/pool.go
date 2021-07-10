@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -52,6 +53,7 @@ func (pool *Pool) HandleClient() {
 				}
 			}
 			break
+
 		case masterMessage := <-pool.MasterBroadcast:
 			fmt.Println("Sending new tab data to all master Sockets")
 			for client, _ := range pool.Clients {
@@ -75,7 +77,7 @@ func (pool *Pool) HandleProcess() {
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
 			for client, _ := range pool.Clients {
 				fmt.Println(client)
-				client.Conn.WriteJSON(Message{Type: 1, Body: "New User Joined..."})
+				client.Conn.WriteJSON(Message{Type: 1, Body: "New Process Connected..."})
 			}
 			break
 		case client := <-pool.Unregister:
@@ -85,13 +87,15 @@ func (pool *Pool) HandleProcess() {
 				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
 			}
 			break
-			// case message := <-pool.Stream:
-			// 	for client, _ := range pool.Clients {
-			// 		if err := client.Conn.WriteJSON(message); err != nil {
-			// 			fmt.Println(err)
-			// 			return
-			// 		}
-			// 	}
+		case message := <-pool.Stream:
+			// for client, _ := range pool.Clients {
+			// 	client.Conn.WriteJSON(message)
+			// }
+			file, _ := os.OpenFile(message.Tab+"_logBase.log", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+			fmt.Println("Writing message:" + message.Body)
+			file.WriteString(message.Body + "\n")
+			file.Close()
+			break
 		}
 	}
 }
