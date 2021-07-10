@@ -10,7 +10,7 @@ import (
 
 var trackCnt int = 0
 
-func masterSocketConnections(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
+func masterSocketConnections(masterQueue *websocket.ProcessMessageMaster, pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New incoming master Socket Connection")
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
@@ -26,6 +26,7 @@ func masterSocketConnections(pool *websocket.Pool, w http.ResponseWriter, r *htt
 
 	fmt.Println("Assigned ID:" + client.ID)
 	pool.Register <- client
+	masterQueue.NotifyNew <- client
 }
 
 func handleProcessConnection(masterQueue *websocket.ProcessMessageMaster, pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
@@ -83,7 +84,7 @@ func setupRoutes(router *mux.Router) {
 	go messageQueueMaster.MainLoop(clientPool)
 
 	router.HandleFunc("/masterSocketConnection", func(w http.ResponseWriter, r *http.Request) {
-		masterSocketConnections(clientPool, w, r)
+		masterSocketConnections(messageQueueMaster, clientPool, w, r)
 	})
 	router.HandleFunc("/tabSocketConnection/{tabName}", func(rw http.ResponseWriter, r *http.Request) {
 		tabSocketConnection(messageQueueMaster, clientPool, rw, r)

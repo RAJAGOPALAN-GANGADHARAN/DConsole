@@ -75,7 +75,7 @@ func (c *Client) ListenProcess(masterQueue *ProcessMessageMaster) {
 
 func (c *Client) TabChannel(tabName string) {
 	fmt.Println("Opening file:" + tabName)
-	fileSeek, _ := os.Open(tabName + "_logBase.log")
+	fileSeek, _ := os.Open(ConstructLogPath(tabName))
 	scanner := bufio.NewScanner(fileSeek)
 	defer func() {
 		// c.Pool.Unregister <- c
