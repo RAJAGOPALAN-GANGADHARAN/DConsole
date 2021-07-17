@@ -93,6 +93,8 @@ func setupRoutes(router *mux.Router) {
 		handleProcessConnection(messageQueueMaster, processPool, rw, r)
 	})
 
+	go websocket.RawSocketServer()
+
 }
 
 func createRouter() *mux.Router {
