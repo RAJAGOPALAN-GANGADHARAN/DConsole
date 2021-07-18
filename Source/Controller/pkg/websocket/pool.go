@@ -16,11 +16,31 @@ type Pool struct {
 	Stream          chan Message
 }
 
+type SocketPool struct {
+	Register        chan *SocketClient
+	Unregister      chan *SocketClient
+	Clients         map[*SocketClient]bool
+	Broadcast       chan Message
+	MasterBroadcast chan Message
+	Stream          chan Message
+}
+
 func NewPool() *Pool {
 	return &Pool{
 		Register:        make(chan *Client),
 		Unregister:      make(chan *Client),
 		Clients:         make(map[*Client]bool),
+		Broadcast:       make(chan Message),
+		MasterBroadcast: make(chan Message),
+		Stream:          make(chan Message),
+	}
+}
+
+func NewSocketPool() *SocketPool {
+	return &SocketPool{
+		Register:        make(chan *SocketClient),
+		Unregister:      make(chan *SocketClient),
+		Clients:         make(map[*SocketClient]bool),
 		Broadcast:       make(chan Message),
 		MasterBroadcast: make(chan Message),
 		Stream:          make(chan Message),
@@ -33,18 +53,16 @@ func (pool *Pool) HandleClient() {
 		case client := <-pool.Register:
 			pool.Clients[client] = true
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
+			for client := range pool.Clients {
 				fmt.Println(client)
 				client.Conn.WriteJSON(Message{Type: 1, Body: "New User Joined..."})
 			}
-			break
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
 			for client, _ := range pool.Clients {
 				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
 			}
-			break
 		case message := <-pool.Broadcast:
 			fmt.Println("Sending message to all clients in Pool")
 			for client, _ := range pool.Clients {
@@ -53,7 +71,6 @@ func (pool *Pool) HandleClient() {
 					return
 				}
 			}
-			break
 
 		case masterMessage := <-pool.MasterBroadcast:
 			fmt.Println("Sending new tab data to all master Sockets")
@@ -76,26 +93,32 @@ func (pool *Pool) HandleProcess() {
 		case client := <-pool.Register:
 			pool.Clients[client] = true
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				fmt.Println(client)
-				client.Conn.WriteJSON(Message{Type: 1, Body: "New Process Connected..."})
-			}
-			break
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				client.mu.Lock()
-				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
-				client.mu.Unlock()
-			}
-			break
 		case message := <-pool.Stream:
 			file, _ := os.OpenFile(ConstructLogPath(message.Tab), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 			fmt.Println("Writing message:" + message.Body)
 			file.WriteString(message.Body + "\n")
 			file.Close()
-			break
+		}
+	}
+}
+
+func (pool *SocketPool) HandleProcess() {
+	for {
+		select {
+		case client := <-pool.Register:
+			pool.Clients[client] = true
+			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
+		case client := <-pool.Unregister:
+			delete(pool.Clients, client)
+			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
+		case message := <-pool.Stream:
+			file, _ := os.OpenFile(ConstructLogPath(message.Tab), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+			fmt.Println("Writing message:" + message.Body)
+			file.WriteString(message.Body + "\n")
+			file.Close()
 		}
 	}
 }

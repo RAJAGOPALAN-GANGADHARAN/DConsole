@@ -3,6 +3,7 @@ package main
 import (
 	"DConsole/pkg/websocket"
 	"fmt"
+	"net"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -72,6 +73,30 @@ func tabSocketConnection(masterQueue *websocket.ProcessMessageMaster, pool *webs
 	client.TabChannel(vars["tabName"])
 }
 
+func RawSocketServer(masterQueue *websocket.ProcessMessageMaster, pool *websocket.SocketPool) {
+	fmt.Println("Starting server...")
+	listener, error := net.Listen("tcp", ":8081")
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	for {
+		connection, _ := listener.Accept()
+		if error != nil {
+			fmt.Println(error)
+		}
+		trackCnt += 1
+		client := &websocket.SocketClient{
+			ID:   "process_socket_" + fmt.Sprint(trackCnt),
+			Pool: pool,
+			Data: make(chan []byte),
+			Conn: connection,
+		}
+		pool.Register <- client
+		go client.ListenProcess(masterQueue)
+	}
+}
+
 func setupRoutes(router *mux.Router) {
 
 	clientPool := websocket.NewPool()
@@ -83,6 +108,9 @@ func setupRoutes(router *mux.Router) {
 	messageQueueMaster := websocket.NewProcessMessageMaster()
 	go messageQueueMaster.MainLoop(clientPool)
 
+	socketProcessPool := websocket.NewSocketPool()
+	go socketProcessPool.HandleProcess()
+
 	router.HandleFunc("/masterSocketConnection", func(w http.ResponseWriter, r *http.Request) {
 		masterSocketConnections(messageQueueMaster, clientPool, w, r)
 	})
@@ -93,7 +121,7 @@ func setupRoutes(router *mux.Router) {
 		handleProcessConnection(messageQueueMaster, processPool, rw, r)
 	})
 
-	go websocket.RawSocketServer()
+	go RawSocketServer(messageQueueMaster, socketProcessPool)
 
 }
 

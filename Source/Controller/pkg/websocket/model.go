@@ -2,8 +2,10 @@ package websocket
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"sync"
 
@@ -16,6 +18,12 @@ type Client struct {
 	Pool    *Pool
 	mu      sync.Mutex
 	TabName string
+}
+type SocketClient struct {
+	ID   string
+	Pool *SocketPool
+	Conn net.Conn
+	Data chan []byte
 }
 
 type Message struct {
@@ -64,12 +72,38 @@ func (c *Client) ListenProcess(masterQueue *ProcessMessageMaster) {
 		masterQueue.Register <- message
 
 		fmt.Printf("Message Received: %d %s\n", message.Type, message.Body)
-		//var message Message
-		// json.Unmarshal(p, &message)
-		//c.Pool.Broadcast <- message
-		// c.Pool.Stream <- message
 		fmt.Printf("Message Received: %+v\n", message)
 
+	}
+}
+
+func (c *SocketClient) ListenProcess(masterQueue *ProcessMessageMaster) {
+
+	defer func() {
+		fmt.Println("Defering Listen Process")
+		c.Pool.Unregister <- c
+		c.Conn.Close()
+	}()
+
+	decoder := json.NewDecoder(c.Conn)
+
+	for {
+		// byteArray := make([]byte, 4096)
+
+		// _, err := c.Conn.Read(byteArray)
+		var message Message
+		err := decoder.Decode(&message)
+		if err != nil {
+			fmt.Println("error occured:" + err.Error())
+			log.Println(err)
+			return
+		}
+		// fmt.Print(string(byteArray))
+		// json.Unmarshal(byteArray, &message)
+		masterQueue.Register <- message
+
+		fmt.Printf("Message Received: %d %s\n", message.Type, message.Body)
+		fmt.Printf("Message Received: %+v\n", message)
 	}
 }
 
@@ -78,8 +112,6 @@ func (c *Client) TabChannel(tabName string) {
 	fileSeek, _ := os.Open(ConstructLogPath(tabName))
 	scanner := bufio.NewScanner(fileSeek)
 	defer func() {
-		// c.Pool.Unregister <- c
-		// c.Conn.Close()
 		fileSeek.Close()
 	}()
 	fmt.Println("************* File Streaming to Tab *********")
