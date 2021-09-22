@@ -1,8 +1,10 @@
 build*/**
-.vscode/*
+**/.vscode/**
+**/.idea/**
 
 *.DS_Store
 Source/controller/build*/**
 *.exe
 *.log
 *.pyc
+Plugs/cpp/a.out
