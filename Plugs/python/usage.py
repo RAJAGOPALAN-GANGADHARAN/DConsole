@@ -3,8 +3,8 @@ import sys
 import random
 
 dio = DConsoleIO()
-sys.stdout =dio
-sys.__stdout__ =dio
+sys.stdout = dio
+sys.__stdout__ = dio
 
 def add(x,y):
     return x+y
@@ -29,3 +29,4 @@ for i in range(1,30):
         print(mul(r,r+65))
     else:
         print(div(r,r+65))
+print('"hello from python"')
