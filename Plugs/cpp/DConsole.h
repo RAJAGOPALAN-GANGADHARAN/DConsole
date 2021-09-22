@@ -2,10 +2,10 @@
 
 #include <iostream>
 #include <string.h>
+#include <algorithm>
 #ifdef _WIN32
-  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
     #ifndef _WIN32_WINNT
-    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+    #define _WIN32_WINNT 0x0501
     #endif
     #define socket_type SOCKET
     #include <winsock2.h>
@@ -13,14 +13,23 @@
 
     #pragma comment(lib, "ws2_32.lib")
 #else
-    /* Assume that any non-Windows platform uses POSIX-style sockets instead. */
     #define socket_type int
+
     #include <sys/socket.h>
     #include <arpa/inet.h>
-    #include <netdb.h>  /* Needed for getaddrinfo() and freeaddrinfo() */
-    #include <unistd.h> /* Needed for close() */
+    #include <netdb.h>
+    #include <unistd.h>
 #endif
 
+static void replace_all(std::string& text, const std::string& from,
+   const std::string& to)
+{
+    for (auto at = text.find(from, 0); at != std::string::npos;
+        at = text.find(from, at + to.length()))
+    {
+        text.replace(at, from.length(), to);
+    }
+}
 struct dconsole_ostreambuf : public std::streambuf
 {
     dconsole_ostreambuf(void* user_data = nullptr): 
@@ -105,11 +114,11 @@ private:
     }
 
     int sendData(const char* rawBody, int size){
+        std::string sanitize(rawBody);
+        replace_all(sanitize,"\"","\\\"");
         char* payload = new char[2048];
-        // snprintf(payload, 2048, "{\"tab\":\"cpp\",\"type\":1,\"body\":\"%s\"}", rawBody);
-        // std::cerr<<payload<<std::endl;
+        snprintf(payload, 2048, "{\"tab\":\"cpp\",\"type\":1,\"body\":\"%s\"}", sanitize.c_str());
         int len=strlen(payload);
-        std::cerr << "Sending data" << std::endl;
         #ifdef _WIN32
         if(send(connectionSocket, payload, len, 0) == SOCKET_ERROR)
             return -1;
