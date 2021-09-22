@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { Tabs, Tab, Button } from "react-bootstrap";
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { TabView } from "./TabView";
+import 'react-tabs/style/react-tabs.css';
 
 export function Home() {
-	
 
-	let [tabViews, tabViewsUpdate] = useState([]);
-	
+	let [tabList, tabListUpdate] = useState([]);
+	let [tabPanel, tabPanelUpdate] = useState([]);
+
 	useEffect(() => {
 		var masterSocket = new WebSocket(
 			"ws://localhost:8080/masterSocketConnection"
@@ -19,15 +20,17 @@ export function Home() {
 			console.log(msg.data)
 			let res = JSON.parse(msg.data)
 			console.log(res)
-			if (res.type == 100)
+			if (res.type == "100")
 			{
-				tabViewsUpdate(state => [...state,
-					<Tab eventKey={res.body} title={res.body}>
+				tabListUpdate(state => [...state,
+					<Tab>{ res.body }</Tab>
+				])
+				tabPanelUpdate(state => [...state,
+					<TabPanel>
 						<TabView tabName={res.body} />
-					</Tab>])
+					</TabPanel>
+				])
 			}
-
-			
 		};
 
 		masterSocket.onclose = (event) => {
@@ -39,15 +42,14 @@ export function Home() {
 		};
 	}, []);
 
-	
 	return (
 		<div>
-			<Tabs
-				defaultActiveKey="default"
-				id="uncontrolled-tab-example"
-				unmountOnExit={true}
-			>
-				{tabViews}
+
+			<Tabs>
+				<TabList>
+					{tabList}
+				</TabList>
+				{tabPanel}
 			</Tabs>
 		</div>
 	);
