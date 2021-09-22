@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DConsole/pkg/shared"
 	"DConsole/pkg/websocket"
 	"fmt"
 	"net"
@@ -125,7 +126,12 @@ func setupRoutes(router *mux.Router) {
 
 }
 
+func preProcessing() {
+	shared.ConfigInit()
+}
+
 func createRouter() *mux.Router {
+	preProcessing()
 	router := mux.NewRouter()
 
 	router.Handle("/", http.FileServer(http.Dir("./build")))

@@ -1,8 +1,10 @@
 package websocket
 
 import (
+	"DConsole/pkg/shared"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -23,6 +25,22 @@ type SocketPool struct {
 	Broadcast       chan Message
 	MasterBroadcast chan Message
 	Stream          chan Message
+}
+
+type ProcessMessageQ struct {
+	connectedClients map[*Client]bool
+	FileName         string
+	Register         chan *Client
+	Unregister       chan *Client
+	Broadcast        chan *Message
+}
+
+type ProcessMessageMaster struct {
+	messageQueues map[string]*ProcessMessageQ
+	Register      chan Message
+	Unregister    chan string
+	Notify        chan *Client
+	NotifyNew     chan *Client
 }
 
 func NewPool() *Pool {
@@ -97,7 +115,7 @@ func (pool *Pool) HandleProcess() {
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
 		case message := <-pool.Stream:
-			file, _ := os.OpenFile(ConstructLogPath(message.Tab), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+			file, _ := os.OpenFile(shared.ConstructLogPath(message.Tab), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 			fmt.Println("Writing message:" + message.Body)
 			file.WriteString(message.Body + "\n")
 			file.Close()
@@ -115,20 +133,12 @@ func (pool *SocketPool) HandleProcess() {
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
 		case message := <-pool.Stream:
-			file, _ := os.OpenFile(ConstructLogPath(message.Tab), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+			file, _ := os.OpenFile(shared.ConstructLogPath(message.Tab), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 			fmt.Println("Writing message:" + message.Body)
 			file.WriteString(message.Body + "\n")
 			file.Close()
 		}
 	}
-}
-
-type ProcessMessageQ struct {
-	connectedClients map[*Client]bool
-	FileName         string
-	Register         chan *Client
-	Unregister       chan *Client
-	Broadcast        chan *Message
 }
 
 func NewProcessMessageQ(fileName string) *ProcessMessageQ {
@@ -168,14 +178,6 @@ func (queue *ProcessMessageQ) MainLoop() {
 	}
 }
 
-type ProcessMessageMaster struct {
-	messageQueues map[string]*ProcessMessageQ
-	Register      chan Message
-	Unregister    chan string
-	Notify        chan *Client
-	NotifyNew     chan *Client
-}
-
 func NewProcessMessageMaster() *ProcessMessageMaster {
 	return &ProcessMessageMaster{
 		messageQueues: make(map[string]*ProcessMessageQ),
@@ -191,10 +193,11 @@ func (master *ProcessMessageMaster) MainLoop(pool *Pool) {
 		select {
 		case message := <-master.Register:
 			if _, ok := master.messageQueues[message.Tab]; !ok {
-				master.messageQueues[message.Tab] = NewProcessMessageQ(ConstructLogPath(message.Tab))
+				master.messageQueues[message.Tab] = NewProcessMessageQ(shared.ConstructLogPath(message.Tab))
 				go master.messageQueues[message.Tab].MainLoop()
+				log.Println(shared.GetProperty("TAB_CREATION_CODE"))
 				tabMessage := &Message{
-					Type: 100, //100 is a tab spawn message
+					Type: shared.GetPropertyAsInt("TAB_CREATION_CODE"), //100 is a tab spawn mesage
 					Body: message.Tab,
 				}
 				pool.Broadcast <- *tabMessage
@@ -211,7 +214,7 @@ func (master *ProcessMessageMaster) MainLoop(pool *Pool) {
 			fmt.Println("Send all tab details to new master Socket")
 			for tab, _ := range master.messageQueues {
 				client.Conn.WriteJSON(&Message{
-					Type: 100,
+					Type: shared.GetPropertyAsInt("TAB_CREATION_CODE"),
 					Body: tab,
 				})
 				fmt.Println(tab)

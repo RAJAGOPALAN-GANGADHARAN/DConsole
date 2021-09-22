@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"DConsole/pkg/shared"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -88,9 +89,6 @@ func (c *SocketClient) ListenProcess(masterQueue *ProcessMessageMaster) {
 	decoder := json.NewDecoder(c.Conn)
 
 	for {
-		// byteArray := make([]byte, 4096)
-
-		// _, err := c.Conn.Read(byteArray)
 		var message Message
 		err := decoder.Decode(&message)
 		if err != nil {
@@ -98,8 +96,6 @@ func (c *SocketClient) ListenProcess(masterQueue *ProcessMessageMaster) {
 			log.Println(err)
 			return
 		}
-		// fmt.Print(string(byteArray))
-		// json.Unmarshal(byteArray, &message)
 		masterQueue.Register <- message
 
 		fmt.Printf("Message Received: %d %s\n", message.Type, message.Body)
@@ -108,13 +104,12 @@ func (c *SocketClient) ListenProcess(masterQueue *ProcessMessageMaster) {
 }
 
 func (c *Client) TabChannel(tabName string) {
-	fmt.Println("Opening file:" + tabName)
-	fileSeek, _ := os.Open(ConstructLogPath(tabName))
+	// fmt.Println("Opening file:" + tabName)
+	fileSeek, _ := os.Open(shared.ConstructLogPath(tabName))
 	scanner := bufio.NewScanner(fileSeek)
 	defer func() {
 		fileSeek.Close()
 	}()
-	fmt.Println("************* File Streaming to Tab *********")
 	for {
 		if scanner.Scan() {
 			c.Conn.WriteMessage(1, []byte(scanner.Text()))

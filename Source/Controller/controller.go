@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"github.com/rs/cors"
 	"log"
 	"net/http"
-
-	"github.com/rs/cors"
 )
 
 func main() {
-	fmt.Println("Starting a webserver")
-
+	log.Println("Starting DConsole Controller")
 	//runtime.GOMAXPROCS(2)
 	router := createRouter()
 	handler := cors.Default().Handler(router)
