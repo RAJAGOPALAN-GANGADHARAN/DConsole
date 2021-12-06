@@ -45,8 +45,6 @@ You can refer to the following articles on the basics of Git and Github and also
 
 ## Instructions:
 
-#### Follow this only:
-
 To start the go controller
 ```sh
 cd Source/Controller/
@@ -57,33 +55,6 @@ To start Client
 ```sh
 cd Source/Shared
 npm run start
-```
-
-#### Requirements
-
-+ Linux
-
-```sh
-sudo apt-get install build-essentials qt5-default
-```
-
-#### Using Cmake as Generator
-```sh
-mkdir build && cd build
-cmake .. -DCMAKE_CXX_FLAGS="-pthread"
-make
-```
-
-#### Using Ninja as Generator
-```sh
-mkdir build && cd build
-cmake .. -GNinja -DCMAKE_CXX_FLAGS="-pthread"
-ninja -j <CPU_CORES>
-```
-
-#### Enable Debug prints
-```sh
-cmake .. -GNinja -DCMAKE_CXX_FLAGS="-DDEBUG -pthread"
 ```
 
 #### Communication Channel
