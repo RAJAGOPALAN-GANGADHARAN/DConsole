@@ -45,6 +45,20 @@ You can refer to the following articles on the basics of Git and Github and also
 
 ## Instructions:
 
+#### Follow this only:
+
+To start the go controller
+```sh
+cd Source/Controller/
+go run .
+```
+
+To start Client
+```sh
+cd Source/Shared
+npm run start
+```
+
 #### Requirements
 
 + Linux
