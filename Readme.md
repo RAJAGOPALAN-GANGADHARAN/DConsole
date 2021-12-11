@@ -54,6 +54,7 @@ go run .
 To start Client
 ```sh
 cd Source/Shared
+npm install
 npm run start
 ```
 
